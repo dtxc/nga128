@@ -1,2 +1,2 @@
 # nga128
-simple hashing algorithm
+todo: write readme.md
