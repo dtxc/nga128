@@ -76,7 +76,7 @@ def f(x: int) -> int:
 
 for i in range(len(arr)):
     crt = ord(data[arr[i]-1])
-    res |= f(i)
+    res |= f(crt)
 
 ret += res.to_bytes(8, sys.byteorder) # 0xFFFFFFFF < res <= 0xFFFFFFFFFFFFFFFF
 
@@ -91,8 +91,9 @@ def g(x: int) -> int:
 res = random.randint(1, 65535)
 
 for i in range(len(data)):
+    crt = ord(data[i])
     if i % 2 != 0:
-        res |= g(i)
+        res |= g(crt)
 
 ret += res.to_bytes(2, sys.byteorder) # 0x00 < res <= 0xFFFF
 
