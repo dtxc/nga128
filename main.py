@@ -76,7 +76,10 @@ def f(x: int) -> int:
 
 for i in range(len(arr)):
     crt = ord(data[arr[i]-1])
-    res |= f(crt)
+    if i % 2 == 0:
+        res |= f(crt)
+    else:
+        res &= f(crt)
 
 ret += res.to_bytes(8, sys.byteorder) # 0xFFFFFFFF < res <= 0xFFFFFFFFFFFFFFFF
 
@@ -94,6 +97,8 @@ for i in range(len(data)):
     crt = ord(data[i])
     if i % 2 != 0:
         res |= g(crt)
+    else:
+        res &= g(crt)
 
 ret += res.to_bytes(2, sys.byteorder) # 0x00 < res <= 0xFFFF
 
