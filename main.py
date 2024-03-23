@@ -3,12 +3,21 @@
 
 # NOTE: this is not a highly secure algorithm. do NOT use it for production
 
-import re
+import re 
 import sys
-import random
 import binascii
 
 from math import log2, floor
+
+
+class PRNG:
+    def __init__(self, seed: int = 1):
+        self.seed = seed
+
+    def rnd(self, a: int, b: int):
+        # 182058659 is a large prime number
+        self.seed = (self.seed * 182058659 + 69420) & 0x7fffffff
+        return a + (self.seed % (b - a + 1))
 
 
 data = input("enter a string to hash: ")
@@ -24,23 +33,20 @@ s = sum([ord(x) for x in data])
 avg = int(s / len(data)) << 2 # avg <= 0x4ec0 (~ = 126)
 
 # randomness CAN be used for a hashing algorithm as long as the seed for the string remains the same
-# NOTE: seed is always a really large number which exceeds the 64-bit limit
-random.seed(len(data) | (1 << avg) + s)
+prng = PRNG(len(data) | (1 << int((avg >> 8) // 16)) + s)
 
 ret += avg.to_bytes(2, sys.byteorder) # 0xFF < avg < 0x7FFF
 
 # random unsigned 32-bit integer
-res = random.randint(1, 1 << 32) # 4 byte integer (10 bytes left)
+res = prng.rnd(1, 1 << 32) # 4 byte integer (10 bytes left)
 
 last = ord(data[::-1][0])
-
 
 # TODO: include n-1, n+1 in the function to increase output diversity (?)
 for i in range(len(data)):
     crt = ord(data[i])
 
     if i % 2 == 0:
-        # res = n OR (floor(n / 3) << floor(log2(n)) OR (n OR l << 2))
         res -= crt | (int(crt // 3) << int(log2(crt))) | (crt | last << 2)
     else:
         res += (crt << 1) & (crt % 2)
@@ -48,7 +54,7 @@ for i in range(len(data)):
 # set the length to the maximum possible so that output length is always 16 bytes
 ret += res.to_bytes(4, sys.byteorder) # 0xFFFF < res < 0xFFFFFFFF
 
-res = random.randint(1 << 32, 1 << 64) # 8 byte integer (2 bytes left)
+res = prng.rnd(1 << 32, 1 << 64) # 8 byte integer (2 bytes left)
 
 # in this loop only the 2^n characters will be used
 arr = [2 ** x for x in range(floor(log2(len(data))))]
@@ -66,7 +72,7 @@ def f(x: int) -> int:
 
     # this ensures non-linearity in the function
     # the prime numbers p, q and r are choosen to avoid repeating patterns in the output
-    # and to increase diversity
+    # and to increase output diversity
     b = (a * (a * a * p + q) + r) & ((1 << 64) - 1)
 
     # discard high bits
@@ -91,7 +97,7 @@ def g(x: int) -> int:
     
     return a
 
-res = random.randint(1, 65535)
+res = prng.rnd(1, 65535)
 
 for i in range(len(data)):
     crt = ord(data[i])
